@@ -21,13 +21,13 @@ public class TextParser extends AbstractTextParser {
         String[] paragraphs = text.split(RegexConstant.REGEX_PARAGRAPH);
         int paragraphCount = 0;
 
-        AbstractTextParser next = getNextParser();
+        AbstractTextParser nextParser = getNextParser();
 
         for (String paragraph : paragraphs) {
             String trimmedParagraph = paragraph.strip();
 
             if (!trimmedParagraph.isEmpty()) {
-                TextComponent paragraphComponent = next.parse(trimmedParagraph);
+                TextComponent paragraphComponent = nextParser.parse(trimmedParagraph);
                 textComponent.add(paragraphComponent);
                 paragraphCount++;
             }
