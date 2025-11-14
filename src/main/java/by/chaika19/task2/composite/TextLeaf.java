@@ -19,6 +19,10 @@ public class TextLeaf implements TextComponent {
         this.type = type;
     }
 
+    public String getTextContent() {
+        return textContent;
+    }
+
     @Override
     public void add(TextComponent component) {
         throw new UnsupportedOperationException("Cannot add component to a TextLeaf");
@@ -37,10 +41,5 @@ public class TextLeaf implements TextComponent {
     @Override
     public TextComponentType getType() {
         return type;
-    }
-
-    @Override
-    public String compose() {
-        return textContent;
     }
 }

@@ -8,5 +8,6 @@ import java.util.List;
 public interface TextService {
     int findMaxSentencesWithSameWords(TextComponent textRoot) throws TextException;
     List<TextComponent> sortSentencesByLexemeCount(TextComponent textRoot) throws TextException;
-    public List<TextComponent> swappedFirstAndLastLexeme(TextComponent textComponent) throws TextException;
+    TextComponent swapFirstAndLastLexemeInSentences(TextComponent textComponent) throws TextException;
+    String compose(TextComponent textRoot);
 }

@@ -30,18 +30,4 @@ public class TextComposite implements TextComponent {
     public TextComponentType getType() {
         return type;
     }
-
-    @Override
-    public String compose() {
-        StringBuilder sb = new StringBuilder();
-        String separator = "";
-
-        if (type == TextComponentType.PARAGRAPH || type == TextComponentType.SENTENCE) {
-            separator = " ";
-        } else if (type == TextComponentType.TEXT) {}
-        for (TextComponent component : components) {
-            sb.append(component.compose());
-        }
-        return sb.toString();
-    }
 }

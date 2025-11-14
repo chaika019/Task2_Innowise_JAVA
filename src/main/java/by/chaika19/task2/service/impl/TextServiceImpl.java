@@ -2,7 +2,10 @@ package by.chaika19.task2.service.impl;
 
 import by.chaika19.task2.composite.TextComponent;
 import by.chaika19.task2.composite.TextComponentType;
+import by.chaika19.task2.composite.TextComposite;
+import by.chaika19.task2.composite.TextLeaf;
 import by.chaika19.task2.exception.TextException;
+import by.chaika19.task2.parser.DelimiterConstants;
 import by.chaika19.task2.service.TextService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,30 +49,81 @@ public class TextServiceImpl implements TextService {
     public List<TextComponent> sortSentencesByLexemeCount(TextComponent textRoot) throws TextException {
         logger.info("Starting Task 2: Sorting sentences by lexeme count.");
 
-        List<TextComponent> allSentences = extractSentences(textRoot);
+        List<TextComponent> allSentencesCopy = new ArrayList<>(extractSentences(textRoot));
 
-        allSentences.sort(Comparator.comparingInt(sentence -> sentence.getChildren().size()));
+        allSentencesCopy.sort(Comparator.comparingInt(sentence -> sentence.getChildren().size()));
 
-        logger.info("Task 2 completed. Sorted {} sentences by lexeme count.", allSentences.size());
-        return allSentences;
+        logger.info("Task 2 completed. Sorted {} sentences by lexeme count.", allSentencesCopy.size());
+        return allSentencesCopy;
     }
 
-    public List<TextComponent> swappedFirstAndLastLexeme(TextComponent textComponent) throws TextException {
+    @Override
+    public TextComponent swapFirstAndLastLexemeInSentences(TextComponent textComponent) throws TextException {
         logger.info("Starting Task 3: Swapping first and last lexeme");
 
-        List<TextComponent> allSentences = extractSentences(textComponent);
+        TextComposite result = new TextComposite(TextComponentType.TEXT);
 
-        for (TextComponent sentence : allSentences) {
-            List<TextComponent> lexemes = sentence.getChildren();
-            int size = lexemes.size();
-            if (lexemes.size() >= 2) {
-                Collections.swap(lexemes, 0, size - 1);
+        if (textComponent.getType() != TextComponentType.TEXT) {
+            throw new TextException("Root component must be of type TEXT");
+        }
+
+        for (TextComponent paragraph : textComponent.getChildren()) {
+            TextComposite newParagraph = new TextComposite(TextComponentType.PARAGRAPH);
+            for (TextComponent sentence : paragraph.getChildren()) {
+                TextComponent newSentence = swapLexemesInSentence(sentence);
+                newParagraph.add(newSentence);
             }
+            result.add(newParagraph);
         }
 
         logger.info("Task 3 completed. Swapped first and last lexeme");
-        return allSentences;
+        return result;
     }
+
+    private TextComponent swapLexemesInSentence(TextComponent sentence) {
+        List<TextComponent> originalLexemes = sentence.getChildren();
+        List<TextComponent> newLexemes = new ArrayList<>(originalLexemes);
+
+        int size = newLexemes.size();
+        if (size >= 2) {
+            Collections.swap(newLexemes, 0, size - 1);
+        }
+
+        TextComposite newSentence = new TextComposite(TextComponentType.SENTENCE);
+
+        newLexemes.forEach(newSentence::add);
+
+        return newSentence;
+    }
+
+    @Override
+    public String compose(TextComponent textRoot) {
+        logger.info("Starting text composition (restoration).");
+        String result = composeComponent(textRoot);
+        logger.info("Text composition completed.");
+        return result;
+    }
+
+    private String composeComponent(TextComponent component) {
+        if (component instanceof TextLeaf) {
+            return ((TextLeaf) component).getTextContent();
+        }
+
+        TextComponentType type = component.getType();
+
+        String delimiter = switch (type) {
+            case TEXT -> DelimiterConstants.TEXT_DELIMITER;
+            case PARAGRAPH -> DelimiterConstants.PARAGRAPH_DELIMITER;
+            case SENTENCE -> DelimiterConstants.SENTENCE_DELIMITER;
+            case LEXEME -> DelimiterConstants.LEXEME_DELIMITER;
+            default -> "";
+        };
+
+        return component.getChildren().stream()
+                .map(this::composeComponent)
+                .collect(Collectors.joining(delimiter));
+    }
+
 
     private List<TextComponent> extractSentences(TextComponent text) throws TextException {
         if (text.getType() != TextComponentType.TEXT) {
@@ -85,7 +139,8 @@ public class TextServiceImpl implements TextService {
         Set<String> words = new HashSet<>();
 
         if(component.getType() == TextComponentType.WORD) {
-            words.add(component.compose());
+            TextLeaf wordLeaf = (TextLeaf) component;
+            words.add(wordLeaf.getTextContent());
             return words;
         }
 
